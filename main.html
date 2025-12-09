@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖誕禮物接接樂</title>
+    <!-- 引入 Tailwind CSS 確保響應式設計和基本美觀 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 使用 Inter 字體 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1a2c; /* 深夜藍背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* 防止滾動條出現 */
+        }
+
+        #game-container {
+            width: 95vw;
+            max-width: 600px;
+            height: 80vh;
+            max-height: 800px;
+            background-color: #0d2138; /* 稍淺的深藍色 */
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 0 10px #e7e7e7;
+            position: relative;
+            overflow: hidden;
+            border: 5px solid #ffcc33; /* 金色邊框 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        #game-area {
+            flex-grow: 1;
+            position: relative;
+            background-image:
+                /* 簡易雪花效果 */
+                radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.7) 1px, transparent 0),
+                radial-gradient(ellipse at 80% 60%, rgba(255, 255, 255, 0.5) 1px, transparent 0),
+                radial-gradient(ellipse at 50% 90%, rgba(255, 255, 255, 0.8) 1px, transparent 0),
+                radial-gradient(ellipse at 10% 70%, rgba(255, 255, 255, 0.4) 1px, transparent 0);
+            background-size: 200px 200px;
+        }
+
+        #sleigh {
+            position: absolute;
+            bottom: 0;
+            width: 80px;
+            height: 40px;
+            background-color: #c0392b; /* 聖誕紅 */
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 4px #a93226, inset 0 -5px 0 rgba(255, 255, 255, 0.4);
+            transition: left 0.05s linear; /* 平滑移動 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: white;
+            z-index: 10;
+        }
+        /* 雪橇上的白色絨毛裝飾 */
+        #sleigh::before {
+            content: "🎅";
+            position: absolute;
+            top: -15px;
+            font-size: 20px;
+            line-height: 1;
+        }
+        
+        .gift {
+            position: absolute;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .gift.good {
+            background-color: #2ecc71; /* 綠色禮物 */
+            border: 2px solid #27ae60;
+        }
+        .gift.bad {
+            background-color: #7f8c8d; /* 灰色煤炭 */
+            border: 2px solid #6c7a7d;
+            font-size: 20px;
+        }
+
+        /* 脈衝動畫，讓禮物看起來更生動 */
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        /* 訊息彈窗樣式 */
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 1rem;
+            text-align: center;
+            z-index: 20;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border: 5px solid #c0392b;
+        }
+
+        .control-button {
+            @apply px-6 py-3 m-2 text-white font-bold rounded-full transition-all duration-300 transform shadow-lg hover:scale-105;
+            background-image: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+        }
+        .control-button:active {
+             @apply scale-95;
+             background-image: linear-gradient(135deg, #a93226 0%, #c0392b 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+
+    <div id="game-container">
+        <!-- 頂部資訊欄 -->
+        <div class="p-4 bg-yellow-600 text-white rounded-t-xl flex justify-between items-center shadow-md">
+            <h1 class="text-2xl font-bold tracking-wider">聖誕禮物接接樂</h1>
+            <div id="score-display" class="text-xl font-mono bg-yellow-700 px-4 py-1 rounded-full shadow-inner">
+                分數: 0
+            </div>
+        </div>
+
+        <!-- 遊戲區域 -->
+        <div id="game-area">
+            <!-- 聖誕雪橇/接取器 -->
+            <div id="sleigh"></div>
+        </div>
+
+        <!-- 手機控制按鈕 -->
+        <div id="mobile-controls" class="p-4 flex justify-center space-x-4 bg-gray-800 rounded-b-xl md:hidden">
+            <button class="control-button" onclick="moveSleigh('left')">
+                <i class="fas fa-arrow-left"></i> &larr; 左移
+            </button>
+            <button class="control-button" onclick="moveSleigh('right')">
+                右移 &rarr; <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- 訊息彈窗 (遊戲開始/結束) -->
+        <div id="message-box" class="hidden">
+            <h2 id="message-title" class="text-3xl font-extrabold mb-4 text-gray-900">歡迎遊玩！</h2>
+            <p id="message-content" class="text-gray-700 mb-6">
+                使用鍵盤的 **左/右箭頭** 或下方的 **按鈕** 來移動聖誕雪橇，接住禮物 (🎁)，避開煤炭 (⚫)！
+            </p>
+            <button id="start-button" class="px-8 py-4 bg-green-500 text-white font-bold text-xl rounded-lg shadow-xl hover:bg-green-600 transition-colors transform hover:scale-105" onclick="startGame()">
+                開始遊戲
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 遊戲設定 ---
+        const GAME_SPEED = 20; // 遊戲迴圈更新間隔 (毫秒)
+        const GIFT_FALL_RATE = 2; // 禮物下降速度 (像素/幀)
+        const CATCHER_MOVE_STEP = 20; // 雪橇移動步長 (像素)
+        const GIFT_SPAWN_RATE = 1500; // 禮物生成間隔 (毫秒)
+        const MAX_MISSES = 5; // 最大允許錯過的禮物數
+
+        // --- DOM 元素 ---
+        const gameArea = document.getElementById('game-area');
+        const sleigh = document.getElementById('sleigh');
+        const scoreDisplay = document.getElementById('score-display');
+        const messageBox = document.getElementById('message-box');
+        const messageTitle = document.getElementById('message-title');
+        const messageContent = document.getElementById('message-content');
+        const startButton = document.getElementById('start-button');
+        const mobileControls = document.getElementById('mobile-controls');
+
+        // --- 遊戲狀態 ---
+        let score = 0;
+        let missedCount = 0;
+        let isGameRunning = false;
+        let gameLoopInterval = null;
+        let giftSpawnTimeout = null;
+        let sleighX = 0;
+        const fallingGifts = [];
+
+        /**
+         * 初始化遊戲設置和狀態。
+         */
+        function initializeGame() {
+            // 讓雪橇初始位於中央
+            const gameAreaWidth = gameArea.clientWidth;
+            const sleighWidth = sleigh.offsetWidth;
+            sleighX = (gameAreaWidth - sleighWidth) / 2;
+            sleigh.style.left = `${sleighX}px`;
+
+            // 調整手機控制按鈕的可見性
+            if (window.innerWidth < 768) {
+                mobileControls.style.display = 'flex';
+            } else {
+                mobileControls.style.display = 'none';
+            }
+            
+            // 【修正】確保遊戲開始/結束訊息框在遊戲載入時顯示
+            messageBox.classList.remove('hidden');
+        }
+
+        /**
+         * 啟動遊戲。
+         */
+        function startGame() {
+            if (isGameRunning) return;
+
+            // 重設狀態
+            score = 0;
+            missedCount = 0;
+            updateScoreDisplay();
+            isGameRunning = true;
+            messageBox.classList.add('hidden'); // 隱藏訊息框
+            
+            // 清除舊禮物
+            fallingGifts.forEach(gift => gift.element.remove());
+            fallingGifts.length = 0;
+
+            // 啟動遊戲迴圈和禮物生成
+            gameLoopInterval = setInterval(gameLoop, GAME_SPEED);
+            spawnGiftLoop();
+        }
+
+        /**
+         * 結束遊戲並顯示結果。
+         */
+        function endGame() {
+            isGameRunning = false;
+            clearInterval(gameLoopInterval);
+            clearTimeout(giftSpawnTimeout);
+
+            messageTitle.textContent = "遊戲結束！";
+            messageContent.innerHTML = `您的最終得分是：<span class="text-red-600 font-extrabold text-4xl">${score}</span> 分。<br> 準備好再玩一局，將禮物送給全世界了嗎？`;
+            startButton.textContent = "再玩一次";
+            messageBox.classList.remove('hidden'); // 顯示訊息框
+        }
+
+        /**
+         * 更新分數顯示。
+         */
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = `分數: ${score} | 錯過: ${missedCount}/${MAX_MISSES}`;
+            if (missedCount >= MAX_MISSES) {
+                endGame();
+            }
+        }
+
+        /**
+         * 遊戲的主迴圈：更新位置、檢查碰撞。
+         */
+        function gameLoop() {
+            if (!isGameRunning) return;
+
+            const sleighRect = sleigh.getBoundingClientRect();
+            const gameAreaHeight = gameArea.clientHeight;
+
+            // 迭代所有掉落的禮物
+            for (let i = fallingGifts.length - 1; i >= 0; i--) {
+                const gift = fallingGifts[i];
+                const giftElement = gift.element;
+                gift.y += GIFT_FALL_RATE;
+                giftElement.style.top = `${gift.y}px`;
+
+                // 檢查是否接住 (碰撞)
+                if (gift.y + giftElement.offsetHeight >= sleighRect.top) {
+                    const giftRect = giftElement.getBoundingClientRect();
+
+                    // 檢查水平方向是否有重疊
+                    if (giftRect.left < sleighRect.right && giftRect.right > sleighRect.left) {
+                        // 碰撞發生！
+                        if (gift.type === 'good') {
+                            score += 10;
+                        } else {
+                            // 接到煤炭，扣分
+                            score = Math.max(0, score - 5);
+                            sleigh.style.backgroundColor = '#d35400'; // 閃爍橘色表示懲罰
+                            setTimeout(() => sleigh.style.backgroundColor = '#c0392b', 100);
+                        }
+                        
+                        giftElement.remove();
+                        fallingGifts.splice(i, 1);
+                        updateScoreDisplay();
+                    }
+                }
+
+                // 檢查是否錯過 (掉到底部)
+                if (gift.y > gameAreaHeight) {
+                    if (gift.type === 'good') {
+                        missedCount++;
+                    } else {
+                        // 錯過煤炭，不懲罰
+                    }
+                    giftElement.remove();
+                    fallingGifts.splice(i, 1);
+                    updateScoreDisplay();
+                }
+            }
+        }
+
+        /**
+         * 在隨機位置生成新的禮物或煤炭。
+         */
+        function spawnGift() {
+            const isGood = Math.random() < 0.8; // 80% 禮物, 20% 煤炭
+            const type = isGood ? 'good' : 'bad';
+            const content = isGood ? '🎁' : '⚫';
+            
+            const giftElement = document.createElement('div');
+            giftElement.className = `gift ${type}`;
+            giftElement.textContent = content;
+
+            const gameAreaWidth = gameArea.clientWidth;
+            const giftWidth = 30; // 禮物寬度
+            
+            // 隨機生成 X 座標
+            const x = Math.random() * (gameAreaWidth - giftWidth);
+            
+            giftElement.style.left = `${x}px`;
+            giftElement.style.top = '0px';
+
+            gameArea.appendChild(giftElement);
+            
+            fallingGifts.push({
+                element: giftElement,
+                x: x,
+                y: 0,
+                type: type
+            });
+        }
+
+        /**
+         * 循環生成禮物，並逐漸加快速度。
+         */
+        function spawnGiftLoop() {
+            if (!isGameRunning) return;
+
+            spawnGift();
+
+            // 根據分數調整生成速度 (最快 500ms)
+            let spawnDelay = Math.max(500, GIFT_SPAWN_RATE - (score * 5)); 
+            
+            giftSpawnTimeout = setTimeout(spawnGiftLoop, spawnDelay);
+        }
+
+        /**
+         * 移動聖誕雪橇。
+         * @param {string} direction 'left' 或 'right'
+         */
+        function moveSleigh(direction) {
+            if (!isGameRunning) return;
+
+            const gameAreaWidth = gameArea.clientWidth;
+            const sleighWidth = sleigh.offsetWidth;
+
+            if (direction === 'left') {
+                sleighX = Math.max(0, sleighX - CATCHER_MOVE_STEP);
+            } else if (direction === 'right') {
+                sleighX = Math.min(gameAreaWidth - sleighWidth, sleighX + CATCHER_MOVE_STEP);
+            }
+
+            sleigh.style.left = `${sleighX}px`;
+        }
+
+        /**
+         * 處理鍵盤輸入，用於桌面玩家。
+         */
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                moveSleigh('left');
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                moveSleigh('right');
+            }
+        });
+
+        // 處理視窗大小改變，確保響應式
+        window.addEventListener('resize', initializeGame);
+
+        // 頁面加載完成後初始化遊戲
+        window.onload = initializeGame;
+
+    </script>
+</body>
+</html>
